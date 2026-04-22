@@ -45,11 +45,11 @@ jobs:
           mkdir -p ../ansible
 
           cat <<EOF > ../ansible/inventory.ini
-[control_plane]
-${CONTROL_PLANE} ansible_user=azureuser
+          [control_plane]
+          ${CONTROL_PLANE} ansible_user=azureuser
 
-[workers]
-EOF
+          [workers]
+          EOF
 
           for ip in ${WORKERS}; do
             echo "$ip ansible_user=azureuser" >> ../ansible/inventory.ini
