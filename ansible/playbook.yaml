@@ -1,0 +1,13 @@
+- name: Test control plane
+  hosts: control_plane
+  gather_facts: false
+  tasks:
+    - debug:
+        msg: "Control plane: {{ inventory_hostname }}"
+
+- name: Test workers
+  hosts: workers
+  gather_facts: false
+  tasks:
+    - debug:
+        msg: "Worker: {{ inventory_hostname }}"

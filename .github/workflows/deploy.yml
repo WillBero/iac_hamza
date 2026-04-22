@@ -1,0 +1,92 @@
+name: Terraform + Ansible
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # -------------------------
+      # Terraform
+      # -------------------------
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+
+      # -------------------------
+      # Récupération des outputs
+      # -------------------------
+      - name: Export Terraform outputs
+        id: tf
+        run: |
+          echo "CONTROL_PLANE=$(terraform output -raw control_plane_ip)" >> $GITHUB_ENV
+          echo "WORKERS=$(terraform output -json worker_ips | jq -r '.[]' | tr '\n' ' ')" >> $GITHUB_ENV
+
+      # -------------------------
+      # Génération inventory
+      # -------------------------
+      - name: Generate Ansible inventory
+        run: |
+          mkdir -p ../ansible
+
+          cat <<EOF > ../ansible/inventory.ini
+[control_plane]
+${CONTROL_PLANE} ansible_user=azureuser
+
+[workers]
+EOF
+
+          for ip in ${WORKERS}; do
+            echo "$ip ansible_user=azureuser" >> ../ansible/inventory.ini
+          done
+
+          echo "" >> ../ansible/inventory.ini
+          echo "[all:children]" >> ../ansible/inventory.ini
+          echo "control_plane" >> ../ansible/inventory.ini
+          echo "workers" >> ../ansible/inventory.ini
+
+      # -------------------------
+      # Attente SSH
+      # -------------------------
+      - name: Wait for SSH
+        run: |
+          for ip in ${CONTROL_PLANE} ${WORKERS}; do
+            echo "Waiting for $ip..."
+            until nc -z $ip 22; do
+              sleep 5
+            done
+          done
+
+      # -------------------------
+      # Setup SSH
+      # -------------------------
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      # -------------------------
+      # Ansible
+      # -------------------------
+      - name: Run Ansible
+        working-directory: ansible
+        run: |
+          pip install ansible
+          export ANSIBLE_HOST_KEY_CHECKING=False
+          ansible-playbook -i inventory.ini playbook.yml
