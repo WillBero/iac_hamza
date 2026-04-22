@@ -22,7 +22,7 @@ jobs:
 
       - name: Terraform Init
         working-directory: terraform
-        run: terraform init -migrate-state
+        run: terraform init
         env:
           TF_VAR_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           TF_VAR_client_id: ${{ secrets.ARM_CLIENT_ID }}
@@ -31,6 +31,7 @@ jobs:
           TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
 
       - name: Terraform Apply
+        working-directory: terraform
         run: terraform apply -auto-approve
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
