@@ -5,7 +5,7 @@ variable "tenant_id"       { type = string }
 
 variable "location" {
   type    = string
-  default = "Sweden Central"
+  default = "West Europe"
 }
 
 variable "vm_count" {
