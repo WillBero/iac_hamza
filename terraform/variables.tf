@@ -13,6 +13,10 @@ variable "vm_count" {
   default = 3
 }
 
+variable "ssh_public_key" {
+  type = string
+}
+
 variable "vm_size" {
   type    = string
   default = "Standard_D2s_v3"
