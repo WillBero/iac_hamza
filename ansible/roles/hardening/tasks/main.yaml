@@ -43,6 +43,7 @@
   ufw:
     rule: allow
     port: "30000:32767"
+    proto: tcp
 
 - name: Enable firewall
   ufw:
