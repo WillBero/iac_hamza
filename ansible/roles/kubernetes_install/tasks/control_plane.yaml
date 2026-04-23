@@ -6,9 +6,3 @@
   copy:
     content: "{{ kubeadm_init.stdout }}"
     dest: /tmp/kubeadm_init_output.txt
-
-- name: Setup kubeconfig
-  shell: |
-    mkdir -p /home/azureuser/.kube
-    cp /etc/kubernetes/admin.conf /home/azureuser/.kube/config
-    chown azureuser:azureuser /home/azureuser/.kube/config
