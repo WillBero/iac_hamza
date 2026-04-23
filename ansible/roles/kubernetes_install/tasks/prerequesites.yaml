@@ -100,5 +100,19 @@
 - name: Reload sysctl
   command: sysctl --system
 
-- name: give right to azureuser
-  command: mkdir -p ~/.kube && sudo cp /etc/kubernetes/admin.conf ~/.kube/config && sudo chown azureuser:azureuser ~/.kube/config
+- name: Create .kube directory
+  file:
+    path: /home/azureuser/.kube
+    state: directory
+    owner: azureuser
+    group: azureuser
+    mode: '0755'
+
+- name: Copy kubeconfig
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/azureuser/.kube/config
+    owner: azureuser
+    group: azureuser
+    mode: '0600'
+    remote_src: true
