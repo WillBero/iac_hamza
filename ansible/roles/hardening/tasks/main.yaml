@@ -1,0 +1,51 @@
+- name: Update packages
+  apt:
+    update_cache: true
+    upgrade: dist
+
+- name: Disable root SSH login
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^PermitRootLogin"
+    line: "PermitRootLogin no"
+  notify: restart ssh
+
+- name: Disable password auth
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^PasswordAuthentication"
+    line: "PasswordAuthentication no"
+  notify: restart ssh
+
+# -------------------------
+# Firewall (UFW)
+# -------------------------
+- name: Install UFW
+  apt:
+    name: ufw
+    state: present
+
+- name: Allow SSH
+  ufw:
+    rule: allow
+    port: 22
+
+- name: Allow Kubernetes API
+  ufw:
+    rule: allow
+    port: 6443
+
+- name: Allow kubelet
+  ufw:
+    rule: allow
+    port: 10250
+
+- name: Allow NodePort range
+  ufw:
+    rule: allow
+    port: "30000:32767"
+
+- name: Enable firewall
+  ufw:
+    state: enabled
+    policy: deny

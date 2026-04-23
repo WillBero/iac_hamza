@@ -1,13 +1,11 @@
-- name: Test control plane
-  hosts: control_plane
-  gather_facts: false
-  tasks:
-    - debug:
-        msg: "Control plane: {{ inventory_hostname }}"
+- name: Base hardening
+  hosts: all
+  become: true
+  roles:
+    - hardening
 
-- name: Test workers
-  hosts: workers
-  gather_facts: false
-  tasks:
-    - debug:
-        msg: "Worker: {{ inventory_hostname }}"
+- name: Kubernetes prerequisites
+  hosts: all
+  become: true
+  roles:
+    - kubernetes_install

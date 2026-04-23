@@ -1,0 +1,14 @@
+- name: kubeadm init
+  command: kubeadm init --pod-network-cidr=10.244.0.0/16
+  register: kubeadm_init
+
+- name: Save join command
+  copy:
+    content: "{{ kubeadm_init.stdout }}"
+    dest: /tmp/kubeadm_init_output.txt
+
+- name: Setup kubeconfig
+  shell: |
+    mkdir -p /home/azureuser/.kube
+    cp /etc/kubernetes/admin.conf /home/azureuser/.kube/config
+    chown azureuser:azureuser /home/azureuser/.kube/config

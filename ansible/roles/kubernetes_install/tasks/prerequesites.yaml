@@ -1,0 +1,46 @@
+- name: Disable swap
+  command: swapoff -a
+
+- name: Remove swap from fstab
+  replace:
+    path: /etc/fstab
+    regexp: '^.*swap.*$'
+    replace: ''
+
+- name: Install dependencies
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - containerd
+    state: present
+
+- name: Enable containerd
+  systemd:
+    name: containerd
+    enabled: yes
+    state: started
+
+- name: Add Kubernetes repo
+  shell: |
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' > /etc/apt/sources.list.d/kubernetes.list
+
+- name: Install kube tools
+  apt:
+    update_cache: yes
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: present
+
+- name: Hold kube packages
+  command: apt-mark hold kubelet kubeadm kubectl
+
+handlers:
+  - name: restart ssh
+    service:
+      name: ssh
+      state: restarted
