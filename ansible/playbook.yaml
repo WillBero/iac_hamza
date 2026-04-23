@@ -6,6 +6,5 @@
 
 - name: Kubernetes prerequisites
   hosts: all
-  become: true
   roles:
     - kubernetes_install
