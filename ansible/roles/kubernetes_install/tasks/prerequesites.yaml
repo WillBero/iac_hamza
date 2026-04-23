@@ -61,9 +61,12 @@
   command: apt-mark hold kubelet kubeadm kubectl
   become: true
 
-- name: Activate kubectl
+- name: Activate kubelet
+  systemd:
+    name: kubelet
+    enabled: yes
+    state: started
   become: true
-  command: systemctl enable --now kubelet
 
 - name: Enable IP forwarding
   sysctl:
@@ -116,3 +119,4 @@
 - name: Reload sysctl
   command: sysctl --system
   become: true
+  changed_when: false
