@@ -1,7 +1,7 @@
-- import_tasks: prerequisites.yaml  
+- include_tasks: prerequesites.yaml
 
-- import_tasks: control_plane.yaml
+- include_tasks: control_plane.yaml
   when: inventory_hostname in groups['control_plane']
 
-- import_tasks: workers.yaml
+- include_tasks: workers.yaml
   when: inventory_hostname not in groups['control_plane']
