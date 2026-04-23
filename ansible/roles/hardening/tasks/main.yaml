@@ -1,7 +1,6 @@
 - name: Update packages
   apt:
     update_cache: true
-    upgrade: dist
 
 - name: Disable root SSH login
   lineinfile:
