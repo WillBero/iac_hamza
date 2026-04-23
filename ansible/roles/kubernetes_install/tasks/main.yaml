@@ -1,5 +1,4 @@
 - include_tasks: prerequesites.yaml
-  become: true
 
 - include_tasks: test.yaml
   when: inventory_hostname in groups['control_plane']
