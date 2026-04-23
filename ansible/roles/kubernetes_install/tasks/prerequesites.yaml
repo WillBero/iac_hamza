@@ -38,9 +38,3 @@
 
 - name: Hold kube packages
   command: apt-mark hold kubelet kubeadm kubectl
-
-handlers:
-  - name: restart ssh
-    service:
-      name: ssh
-      state: restarted
