@@ -99,3 +99,6 @@
 
 - name: Reload sysctl
   command: sysctl --system
+
+- name: give right to azureuser
+  command: mkdir -p ~/.kube && sudo cp /etc/kubernetes/admin.conf ~/.kube/config && sudo chown azureuser:azureuser ~/.kube/config
