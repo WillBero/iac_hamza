@@ -1,6 +1,2 @@
 - name: Create monitoring namespace
-  kubernetes.core.k8s:
-    name: "{{ observability_namespace }}"
-    api_version: v1
-    kind: Namespace
-    state: present
+  shell: kubectl create namespace {{ observability_namespace }}
