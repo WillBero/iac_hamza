@@ -1,16 +1,29 @@
-- name: Check if cluster already initialized
-  command: kubectl get nodes
-  register: cluster_check
-  ignore_errors: true
-  changed_when: false
-
 - name: kubeadm init
   command: kubeadm init --pod-network-cidr=10.244.0.0/16
   register: kubeadm_init
-  when: cluster_check.rc != 0
+  become: true
 
 - name: Save join command
   copy:
     content: "{{ kubeadm_init.stdout }}"
     dest: /tmp/kubeadm_init_output.txt
-  when: cluster_check.rc != 0
+  become: true
+
+- name: Create .kube directory
+  file:
+    path: /home/azureuser/.kube
+    state: directory
+    owner: azureuser
+    group: azureuser
+    mode: '0755'
+  become: true
+
+- name: Copy kubeconfig
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/azureuser/.kube/config
+    owner: azureuser
+    group: azureuser
+    mode: '0600'
+    remote_src: true
+  become: true

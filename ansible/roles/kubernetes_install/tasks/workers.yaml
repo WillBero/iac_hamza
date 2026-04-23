@@ -1,16 +1,16 @@
 - name: Check if node already joined
-  shell: kubectl get nodes {{ inventory_hostname }} 2>/dev/null
+  stat:
+    path: /etc/kubernetes/kubelet.conf
   register: node_check
-  ignore_errors: true
-  changed_when: false
-  delegate_to: "{{ groups['control_plane'][0] }}"
 
 - name: Get join command from control plane
   shell: kubeadm token create --print-join-command
   delegate_to: "{{ groups['control_plane'][0] }}"
   register: join_cmd
-  when: node_check.rc != 0
+  become: true
+  when: not node_check.stat.exists
 
 - name: Join cluster
   command: "{{ join_cmd.stdout }}"
-  when: node_check.rc != 0
+  become: true
+  when: not node_check.stat.exists

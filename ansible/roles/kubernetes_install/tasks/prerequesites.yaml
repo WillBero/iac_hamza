@@ -116,22 +116,3 @@
 - name: Reload sysctl
   command: sysctl --system
   become: true
-
-- name: Create .kube directory
-  file:
-    path: /home/azureuser/.kube
-    state: directory
-    owner: azureuser
-    group: azureuser
-    mode: '0755'
-  become: true
-
-- name: Copy kubeconfig
-  copy:
-    src: /etc/kubernetes/admin.conf
-    dest: /home/azureuser/.kube/config
-    owner: azureuser
-    group: azureuser
-    mode: '0600'
-    remote_src: true
-  become: true
