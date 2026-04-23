@@ -8,3 +8,8 @@
   hosts: all
   roles:
     - kubernetes_install
+
+- name: Deploy Grafana + prometheus
+  hosts: control_plane
+  roles:
+    - observability

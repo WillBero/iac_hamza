@@ -1,0 +1,13 @@
+- name: Wait for Grafana LoadBalancer IP
+  kubernetes.core.k8s_info:
+    kind: Service
+    namespace: "{{ observability_namespace }}"
+    name: kube-prometheus-stack-grafana
+  register: grafana_svc
+  until: grafana_svc.resources[0].status.loadBalancer.ingress is defined
+  retries: 20
+  delay: 15
+
+- name: Display Grafana URL
+  debug:
+    msg: "Grafana доступен sur http://{{ grafana_svc.resources[0].status.loadBalancer.ingress[0].ip }}"

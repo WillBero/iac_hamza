@@ -1,0 +1,8 @@
+- name: Deploy kube-prometheus-stack
+  kubernetes.core.helm:
+    name: kube-prometheus-stack
+    chart_ref: "{{ kube_prometheus_stack_chart }}"
+    chart_version: "{{ kube_prometheus_stack_version }}"
+    release_namespace: "{{ observability_namespace }}"
+    create_namespace: false
+    values: "{{ lookup('template', 'values.yaml.j2') | from_yaml }}"

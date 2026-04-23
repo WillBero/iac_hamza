@@ -1,0 +1,6 @@
+observability_namespace: monitoring
+
+grafana_service_type: LoadBalancer
+
+kube_prometheus_stack_chart: prometheus-community/kube-prometheus-stack
+kube_prometheus_stack_version: "56.6.2"

@@ -1,0 +1,7 @@
+- import_tasks: helm.yml
+
+- import_tasks: namespace.yml
+
+- import_tasks: deploy.yml
+
+- import_tasks: ingress.yml

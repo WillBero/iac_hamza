@@ -1,0 +1,14 @@
+grafana:
+  service:
+    type: {{ grafana_service_type }}
+    port: 80
+
+  adminPassword: "admin"  # à sécuriser ensuite
+
+prometheus:
+  service:
+    type: ClusterIP
+
+alertmanager:
+  service:
+    type: ClusterIP
