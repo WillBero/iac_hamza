@@ -1,3 +1,16 @@
+- name: Check if helm is installed
+  command: helm version
+  register: helm_check
+  ignore_errors: true
+
+- name: Install Helm if not present
+  shell: |
+    curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  args:
+    executable: /bin/bash
+  when: helm_check.rc != 0
+  become: true
+
 - name: Add prometheus helm repo
   kubernetes.core.helm_repository:
     name: prometheus-community
