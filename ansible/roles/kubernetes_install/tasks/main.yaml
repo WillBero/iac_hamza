@@ -1,7 +1,14 @@
 - include_tasks: prerequesites.yaml
 
-- include_tasks: control_plane.yaml
+- include_tasks: test.yaml
   when: inventory_hostname in groups['control_plane']
 
+- include_tasks: control_plane.yaml
+  when: 
+    - inventory_hostname in groups['control_plane']
+    - cluster_check.rc != 0
+
 - include_tasks: workers.yaml
-  when: inventory_hostname not in groups['control_plane']
+  when: 
+    - inventory_hostname not in groups['control_plane']
+    - node_check.rc != 0

@@ -1,0 +1,21 @@
+- name: Check if cluster already initialized
+  command: kubectl get nodes
+  register: cluster_check
+  ignore_errors: true
+  changed_when: false
+
+- name: Debug cluster_check
+  debug:
+    var: cluster_check
+
+- name: Check if node already joined
+  shell: kubectl get nodes {{ inventory_hostname }} 2>/dev/null
+  register: node_check
+  ignore_errors: true
+  changed_when: false
+  delegate_to: "{{ groups['control_plane'][0] }}"
+
+- name: Debug nodes Check
+  debug:
+    var: node_check
+  
