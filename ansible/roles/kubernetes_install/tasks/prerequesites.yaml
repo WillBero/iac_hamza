@@ -1,122 +1,136 @@
-- name: Disable swap
-  command: swapoff -a
-  become: true
-
-- name: Remove swap from fstab
-  replace:
-    path: /etc/fstab
-    regexp: '^.*swap.*$'
-    replace: ''
-  become: true
-
-
-- name: Install dependencies
-  apt:
-    name:
-      - apt-transport-https
-      - ca-certificates
-      - curl
-      - containerd
-    state: present
-  become: true
-
-- name: Enable containerd
-  systemd:
-    name: containerd
-    enabled: yes
-    state: started
-  become: true
-
-- name: Download Kubernetes GPG key
-  get_url:
-    url: https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key
-    dest: /tmp/kubernetes-release.key
-    mode: '0644'
-  become: true
-
-- name: Dearmor GPG key
-  command: gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg /tmp/kubernetes-release.key
-  args:
-    creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-  become: true
-
-- name: Add Kubernetes apt repository
-  apt_repository:
-    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /"
-    state: present
-    filename: kubernetes
-  become: true
-
-- name: Install kube tools
-  apt:
-    update_cache: yes
-    name:
-      - kubelet
-      - kubeadm
-      - kubectl
-    state: present
-  become: true
-
-- name: Hold kube packages
-  command: apt-mark hold kubelet kubeadm kubectl
-  become: true
-
-- name: Activate kubelet
-  systemd:
-    name: kubelet
-    enabled: yes
-    state: started
-  become: true
-
-- name: Enable IP forwarding
-  sysctl:
-    name: net.ipv4.ip_forward
-    value: "1"
-    state: present
-    reload: yes
-  become: true
-
-- name: Persist sysctl settings
-  copy:
-    dest: /etc/sysctl.d/99-kubernetes.conf
-    content: |
-      net.ipv4.ip_forward = 1
-  become: true
-
-- name: Load br_netfilter module
-  modprobe:
-    name: br_netfilter
-    state: present
-  become: true
-
-- name: Load overlay module
-  modprobe:
-    name: overlay
-    state: present
-  become: true
-
-- name: Set sysctl params for Kubernetes
-  sysctl:
-    name: "{{ item.key }}"
-    value: "{{ item.value }}"
-    sysctl_set: yes
-    state: present
-    reload: yes
-  loop:
-    - { key: 'net.bridge.bridge-nf-call-iptables',  value: '1' }
-    - { key: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
-    - { key: 'net.ipv4.ip_forward',                 value: '1' }
-  become: true
-
-- name: Persist modules at boot
-  copy:
-    dest: /etc/modules-load.d/k8s.conf
-    content: |
-      overlay
-      br_netfilter
-  become: true
-
-- name: Reload sysctl
-  command: sysctl --system
-  become: true
+- name: Check if kubeadm is installed
+  command: which kubeadm
+  register: kubeadm_check
+  ignore_errors: true
   changed_when: false
+
+- name: Check if Kubernetes is already initialized
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: kubeadm_init_check
+
+- block:
+    - name: Disable swap
+      command: swapoff -a
+      become: true
+
+    - name: Remove swap from fstab
+      replace:
+        path: /etc/fstab
+        regexp: '^.*swap.*$'
+        replace: ''
+      become: true
+
+    - name: Install dependencies
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - containerd
+        state: present
+      become: true
+
+    - name: Enable containerd
+      systemd:
+        name: containerd
+        enabled: yes
+        state: started
+      become: true
+
+    - name: Download Kubernetes GPG key
+      get_url:
+        url: https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key
+        dest: /tmp/kubernetes-release.key
+        mode: '0644'
+      become: true
+
+    - name: Dearmor GPG key
+      command: gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg /tmp/kubernetes-release.key
+      args:
+        creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      become: true
+
+    - name: Add Kubernetes apt repository
+      apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /"
+        state: present
+        filename: kubernetes
+      become: true
+
+    - name: Install kube tools
+      apt:
+        update_cache: yes
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: present
+      become: true
+
+    - name: Hold kube packages
+      command: apt-mark hold kubelet kubeadm kubectl
+      become: true
+
+    - name: Activate kubelet
+      systemd:
+        name: kubelet
+        enabled: yes
+        state: started
+      become: true
+
+    - name: Enable IP forwarding
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: "1"
+        state: present
+        reload: yes
+      become: true
+
+    - name: Persist sysctl settings
+      copy:
+        dest: /etc/sysctl.d/99-kubernetes.conf
+        content: |
+          net.ipv4.ip_forward = 1
+      become: true
+
+    - name: Load br_netfilter module
+      modprobe:
+        name: br_netfilter
+        state: present
+      become: true
+
+    - name: Load overlay module
+      modprobe:
+        name: overlay
+        state: present
+      become: true
+
+    - name: Set sysctl params for Kubernetes
+      sysctl:
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+        sysctl_set: yes
+        state: present
+        reload: yes
+      loop:
+        - { key: 'net.bridge.bridge-nf-call-iptables',  value: '1' }
+        - { key: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
+        - { key: 'net.ipv4.ip_forward',                 value: '1' }
+      become: true
+
+    - name: Persist modules at boot
+      copy:
+        dest: /etc/modules-load.d/k8s.conf
+        content: |
+          overlay
+          br_netfilter
+      become: true
+
+    - name: Reload sysctl
+      command: sysctl --system
+      become: true
+      changed_when: false
+  
+  when: kubeadm_check.rc != 0 or not kubeadm_init_check.stat.exists
+  become: true
